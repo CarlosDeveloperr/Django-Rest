@@ -12,7 +12,6 @@ PetOwnerRetrieveAPIView,
 ##PETS
 PetsListAPIView,
 PetsRetrieveAPIView,
-
 ) 
                    
 urlpatterns = [
