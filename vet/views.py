@@ -1,157 +1,71 @@
-
-from django.shortcuts import render
-
-# Create your views here.
-from rest_framework import status , generics
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from django.shortcuts import get_object_or_404
+from rest_framework import generics
 
 # Serializers
 from .serializers import (
-    # PetOwnerSerializer,
-    PetOwnerUpdateSerializer,
-    # PetOwnerListSerializer,
-    #Pets
-    PetsListSerializer,
-    PetListSerializer,
-    PetUpdateSerializer,
-    ##Generics
-    PetSerializer,
-    PetsListSerializers,
-    PetOwnersListSerializers,
-    PetOwnerSerializer
+    # Pet Owner serializers
+    PetOwnerModelSerializer,
+    PetOwnersListModelSerializer,
+    PetsListModelSerializer,
+    DatesListModelSerializer
 )
 
 # Models
-from .models import PetOwner, Pet
+from .models import PetOwner, Pet,PetDate
 
-#Generics
-##Owner
-	
-  
-class PetOwnerRetrieveAPIView(generics.RetrieveAPIView):
+
+class PetOwnersListCreateAPIView(generics.ListCreateAPIView):
+
     queryset = PetOwner.objects.all()
-    serializer_class = PetOwnerSerializer
+    serializer_class = PetOwnersListModelSerializer
 
-	
-class PetOwnersListAPIView(generics.ListAPIView):
+    def get_queryset(self):
+
+        first_name_filter = self.request.GET.get("first_name")
+        filters = {}
+        if first_name_filter:
+            filters["first_name__icontains"] = first_name_filter
+
+        return self.queryset.filter(**filters)
+
+    def get_serializer_class(self):
+        serializer_class = self.serializer_class
+        if self.request.method == "POST":
+            serializer_class = PetOwnerModelSerializer
+
+        return serializer_class
+
+
+class PetsListCreateAPIView(generics.ListCreateAPIView):
+
+    queryset = Pet.objects.all()
+    serializer_class = PetsListModelSerializer
+
+    def get_queryset(self):
+
+        name_filter = self.request.GET.get("name")
+        filters = {}
+        if name_filter:
+            filters["name__icontains"] = name_filter
+
+        return self.queryset.filter(**filters)
+
+
+
+class PetOwnersRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+
     queryset = PetOwner.objects.all()
-    serializer_class  = PetOwnersListSerializers
+    serializer_class = PetOwnerModelSerializer
 
-##Pets
-class PetsListAPIView(generics.ListAPIView):
+
+class PetsRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+
     queryset = Pet.objects.all()
-    serializer_class = PetsListSerializers
+    serializer_class = DatesListModelSerializer
 
-class PetsRetrieveAPIView(generics.RetrieveAPIView):
-    queryset = Pet.objects.all()
-    serializer_class = PetSerializer	
+class DatesListCreateAPIView(generics.ListCreateAPIView):
+    queryset = PetDate.objects.all()
+    serializer_class = DatesListModelSerializer
 
-
-
-#Owners
-# class PetOwnersListCreateAPIView(APIView):
-#     """
-#     View to list all pet owners in the system.
-#     """
-
-#     serializer_class = PetOwnerListSerializer
-
-#     def get(self, request):
-
-#         owners_queryset = PetOwner.objects.all()
-#         serializer = self.serializer_class(owners_queryset, many=True)
-
-#         return Response(data=serializer.data)
-
-#     def post(self, request):
-
-#         serializer = PetOwnerSerializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         created_instance = serializer.save()
-#         serialized_instance = PetOwnerSerializer(created_instance)
-
-#         return Response(serialized_instance.data, status=status.HTTP_201_CREATED)
-
-
-# class PetOwnerRetrieveUpdateDestroyAPIView(APIView):
-#     """
-#     View to retrieve a pets by id.
-#     """
-
-#     serializer_class = PetOwnerSerializer
-
-#     def get(self, request, pk):
-
-#         owner = get_object_or_404(PetOwner, id=pk)
-#         serializer = self.serializer_class(owner)
-#         return Response(serializer.data)
-
-#     def patch(self, request, pk):
-
-#         owner = get_object_or_404(PetOwner, id=pk)
-#         serializer = PetOwnerUpdateSerializer(instance=owner, data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         updated_instance = serializer.save()
-#         serialized_instance = self.serializer_class(updated_instance)
-#         return Response(serialized_instance.data)
-
-#     def delete(self, request, pk):
-
-#         owner = get_object_or_404(PetOwner, id=pk)
-#         owner.delete()
-
-#         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-# #PETS
-# class PetsListCreateAPIView(APIView):
-#     """
-#     View to list all pets in the system.
-#     """
-
-#     serializer_class = PetsListSerializer
-
-#     def get(self, request):
-
-#         pets_queryset = Pet.objects.all()
-#         serializer = self.serializer_class(pets_queryset, many=True)
-
-#         return Response(data=serializer.data)
-
-#     def post(self, request):
-
-#         serializer = PetListSerializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-#         created_instance = serializer.save()
-#         serialized_instance = PetListSerializer(created_instance)
-
-#         return Response(serialized_instance.data, status=status.HTTP_201_CREATED)    
-
-# class PetRetrieveUpdateDestroyAPIView(APIView):
-
-    serializer_class = PetListSerializer
-
-    def get(self, request, pk):
-
-        pet = get_object_or_404(Pet, id=pk)
-        serializer = self.serializer_class(pet)
-        return Response(serializer.data)
-
-    def patch(self, request, pk):
-        
-        pet = get_object_or_404(Pet, id=pk)
-        serializer= PetUpdateSerializer(instance=pet,data=request.data)
-        serializer.is_valid(raise_exception=True)
-        updated_instance = serializer.save()
-        serialized_instance = self.serializer_class(updated_instance)
-
-        return Response(serialized_instance.data)
-   
-    def delete(self, request, pk):
-
-        pet = get_object_or_404(Pet, id=pk) 
-        pet.delete()
-
-        return Response(status=status.HTTP_204_NO_CONTENT)        
+class DatesRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = PetDate.objects.all()
+    serializer_class = DatesListModelSerializer
