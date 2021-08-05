@@ -1,7 +1,7 @@
   
 from django.db import models
 from rest_framework import serializers
-from .models import PetOwner,Pet,PetDate
+from .models import PetOwner, Pet, PetDate
 
 
 class PetOwnersListModelSerializer(serializers.ModelSerializer):
@@ -16,14 +16,42 @@ class PetOwnerModelSerializer(serializers.ModelSerializer):
         fields = ["id", "first_name", "last_name", "address", "phone", "email"]
 
 
-class PetsListModelSerializer(serializers.ModelSerializer):
+class PetListModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pet
-        fields = ["id","name", "type", "owner"]
+        fields = ["id", "name", "owner"]
 
-class DatesListModelSerializer(serializers.ModelSerializer):
+
+class PetModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Pet
+        fields = ["id", "name", "type", "owner"]
+
+
+class PetDateListModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = PetDate
-        fields = ["datetime", "type", "pet"]
+        fields = ["id", "datetime", "pet"]
+
+
+class PetDateModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PetDate
+        fields = ["id", "datetime", "type", "pet"]
+
+
+class PetDatePetRetrieveModelSerializer(serializers.ModelSerializer):
+
+    pet = PetModelSerializer()
+
+    class Meta:
+        model = PetDate
+        fields = ["id", "datetime", "type", "pet"]
+
+
+class PetDatePartialUpdateModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PetDate
+        fields = ["datetime", "type"]
 
      
