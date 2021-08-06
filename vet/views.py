@@ -1,4 +1,7 @@
-from rest_framework import generics
+from rest_framework import generics, filters, views
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, BasePermission
+from rest_framework.authentication import TokenAuthentication
+from django_filters.rest_framework import DjangoFilterBackend
 
 # Serializers
 from .serializers import (
@@ -14,7 +17,8 @@ from .serializers import (
     PetDatePetRetrieveModelSerializer,
     PetDatePartialUpdateModelSerializer,
 )
-
+# Custom permission
+from .permissions import OnlyAdminCanCreate
 # Models
 from .models import PetOwner, Pet, PetDate
 
@@ -23,15 +27,13 @@ class PetOwnersListCreateAPIView(generics.ListCreateAPIView):
 
     queryset = PetOwner.objects.all()
     serializer_class = PetOwnersListModelSerializer
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["first_name", "=last_name"]
+    ordering_fields = ["email"]
+    permission_classes = [IsAuthenticated, OnlyAdminCanCreate]
 
-    def get_queryset(self):
-
-        first_name_filter = self.request.GET.get("first_name")
-        filters = {}
-        if first_name_filter:
-            filters["first_name__icontains"] = first_name_filter
-
-        return self.queryset.filter(**filters)
+    #filter_backends = [DjangoFilterBackend]
+    #filterset_fields =  ["first_name","last_name"]
 
     def get_serializer_class(self):
         serializer_class = self.serializer_class
@@ -65,6 +67,8 @@ class PetListCreateAPIView(generics.ListCreateAPIView):
 
     queryset = Pet.objects.all()
     serializer_class = PetListModelSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["name", "owner__first_name"]
 
     def get_serializer_class(self):
         serializer_class = self.serializer_class
@@ -83,17 +87,8 @@ class PetDateListCreateAPIView(generics.ListCreateAPIView):
     queryset = PetDate.objects.all()
     serializer_class = PetDateListModelSerializer
 
-    def get_queryset(self):
-        pet_id = self.request.GET.get("pet")
-        owner_id = self.request.GET.get("owner")
-        filters = {}
-        if pet_id:
-            filters["pet_id"] = pet_id
-
-        if owner_id:
-            filters["pet__owner_id"] = owner_id
-
-        return self.queryset.filter(**filters)
+    filter_backends = [filters.SearchFilter]
+    search_fields = ["pet__owner__first_name"]
 
     def get_serializer_class(self):
         serializer_class = self.serializer_class
